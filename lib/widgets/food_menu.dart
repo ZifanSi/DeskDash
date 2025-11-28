@@ -15,7 +15,7 @@ class FoodMenu extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Food nearby (mock menu)',
+          'TOP FOOD PICKS THIS WEEK',
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),

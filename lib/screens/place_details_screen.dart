@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/study_place.dart';
 
-class PlaceDetailsScreen extends StatelessWidget {
+class PlaceDetailsScreen extends StatefulWidget {
   final StudyPlace place;
   final bool isFavorite;
   final bool isVisited;
@@ -16,6 +16,41 @@ class PlaceDetailsScreen extends StatelessWidget {
     required this.onToggleFavorite,
     required this.onToggleVisited,
   });
+
+  @override
+  State<PlaceDetailsScreen> createState() => _PlaceDetailsScreenState();
+}
+
+class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
+  late List<String> _reviews;
+  final TextEditingController _reviewController = TextEditingController();
+  int _selectedRating = 4;
+
+  @override
+  void initState() {
+    super.initState();
+    _reviews = List<String>.from(widget.place.reviews);
+  }
+
+  @override
+  void dispose() {
+    _reviewController.dispose();
+    super.dispose();
+  }
+
+  void _submitReview() {
+    final text = _reviewController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _reviews.insert(0, '$_selectedRating★  ·  $text');
+      _reviewController.clear();
+      _selectedRating = 4;
+    });
+
+    // For this assignment prototype, we keep reviews in local state.
+    // In a real app, you'd also update the model / backend here.
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +73,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                     _buildHeroCard(context),
                     const SizedBox(height: 16),
                     Text(
-                      place.description,
+                      widget.place.description,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 14),
@@ -46,7 +81,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 4,
                       children:
-                          place.tags
+                          widget.place.tags
                               .map(
                                 (t) => Chip(
                                   label: Text(t),
@@ -60,8 +95,6 @@ class PlaceDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     _buildActions(context),
                     const SizedBox(height: 24),
-                    _buildFoodNearbySection(context),
-                    const SizedBox(height: 24),
                     _buildReviewsSection(context),
                     const SizedBox(height: 24),
                   ],
@@ -73,6 +106,8 @@ class PlaceDetailsScreen extends StatelessWidget {
       ),
     );
   }
+
+  // ---------- top bar & hero ----------
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
@@ -96,14 +131,13 @@ class PlaceDetailsScreen extends StatelessWidget {
     );
   }
 
-  /// Top banner image using network URL
   Widget _buildBannerImage() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Image.network(
-          place.imageUrl,
+          widget.place.imageUrl,
           fit: BoxFit.cover,
           loadingBuilder: (context, child, progress) {
             if (progress == null) return child;
@@ -129,7 +163,7 @@ class PlaceDetailsScreen extends StatelessWidget {
 
   Widget _buildHeroCard(BuildContext context) {
     return Hero(
-      tag: 'place-${place.id}',
+      tag: 'place-${widget.place.id}',
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -163,7 +197,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    place.name,
+                    widget.place.name,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -172,7 +206,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    place.building,
+                    widget.place.building,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFFE2E8F0),
@@ -184,7 +218,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                       Icon(Icons.star, color: Colors.amber.shade400, size: 20),
                       const SizedBox(width: 4),
                       Text(
-                        place.rating.toStringAsFixed(1),
+                        widget.place.rating.toStringAsFixed(1),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -192,7 +226,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '• ${place.noise}',
+                        '• ${widget.place.noise}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFFE5E7EB),
@@ -200,7 +234,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '• ${place.crowdedness}',
+                        '• ${widget.place.crowdedness}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFFE5E7EB),
@@ -217,18 +251,22 @@ class PlaceDetailsScreen extends StatelessWidget {
     );
   }
 
+  // ---------- actions (favorite / visited) ----------
+
   Widget _buildActions(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: FilledButton.icon(
             onPressed: () {
-              onToggleFavorite(place);
+              widget.onToggleFavorite(widget.place);
               Navigator.of(context).maybePop();
             },
-            icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
+            icon: Icon(
+              widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+            ),
             label: Text(
-              isFavorite ? 'Remove from favorites' : 'Save to favorites',
+              widget.isFavorite ? 'Remove from favorites' : 'Save to favorites',
             ),
           ),
         ),
@@ -236,131 +274,22 @@ class PlaceDetailsScreen extends StatelessWidget {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () {
-              onToggleVisited(place);
+              widget.onToggleVisited(widget.place);
               Navigator.of(context).maybePop();
             },
             icon: Icon(
-              isVisited ? Icons.check_circle : Icons.check_circle_outline,
+              widget.isVisited
+                  ? Icons.check_circle
+                  : Icons.check_circle_outline,
             ),
-            label: Text(isVisited ? 'Mark unvisited' : 'Mark visited'),
+            label: Text(widget.isVisited ? 'Mark unvisited' : 'Mark visited'),
           ),
         ),
       ],
     );
   }
 
-  /// Horizontal "Food nearby" section on details screen
-  Widget _buildFoodNearbySection(BuildContext context) {
-    if (place.nearbyFood.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Food nearby',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 110, // <- increased so the card has enough vertical room
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: place.nearbyFood.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final spot = place.nearbyFood[index];
-              return Container(
-                width: 210,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        spot.logoUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.contain,
-                        errorBuilder:
-                            (context, error, stackTrace) => const Icon(
-                              Icons.restaurant,
-                              size: 24,
-                              color: Color(0xFF6B7280),
-                            ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            spot.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            spot.note,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.directions_walk,
-                                size: 12,
-                                color: Color(0xFF6B7280),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                spot.distance,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF6B7280),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  // ---------- reviews (view + write) ----------
 
   Widget _buildReviewsSection(BuildContext context) {
     return Column(
@@ -373,15 +302,80 @@ class PlaceDetailsScreen extends StatelessWidget {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        if (place.reviews.isEmpty)
+
+        // Write review block
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Rate & review this place',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: List.generate(5, (index) {
+                  final starIndex = index + 1;
+                  final selected = starIndex <= _selectedRating;
+                  return IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    icon: Icon(
+                      selected ? Icons.star : Icons.star_border,
+                      size: 22,
+                      color: Colors.amber.shade400,
+                    ),
+                    onPressed: () {
+                      setState(() => _selectedRating = starIndex);
+                    },
+                  );
+                }),
+              ),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _reviewController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Share a quick tip or comment...',
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: _submitReview,
+                  child: const Text('Post review'),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        if (_reviews.isEmpty)
           Text(
-            'No reviews yet. In a real app, students would leave comments here.',
+            'No reviews yet. Be the first to share how this spot feels for studying.',
             style: Theme.of(context).textTheme.bodySmall,
           )
         else
           Column(
             children:
-                place.reviews
+                _reviews
                     .map(
                       (r) => ListTile(
                         contentPadding: EdgeInsets.zero,
