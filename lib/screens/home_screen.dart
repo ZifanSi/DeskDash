@@ -86,6 +86,14 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildFilterChips(),
             ),
             const SizedBox(height: 10),
+
+            // Food-related highlight strip
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildFoodHighlights(context),
+            ),
+            const SizedBox(height: 10),
+
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
@@ -187,8 +195,8 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFFFC72C), // yellow
-                  Color(0xFFDA291C), // red
+                  Color(0xFFFFC72C), // McD yellow
+                  Color(0xFFDA291C), // McD red
                 ],
               ),
             ),
@@ -263,6 +271,175 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Horizontal "study spots near food" section
+  Widget _buildFoodHighlights(BuildContext context) {
+    final foodPlaces = widget.allPlaces.where((p) => p.nearFood).toList();
+
+    if (foodPlaces.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.fastfood_outlined,
+              size: 18,
+              color: Color(0xFFB91C1C), // deep red
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Study spots near food',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 140, // bumped up to avoid overflow
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: foodPlaces.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final place = foodPlaces[index];
+              final optionsCount = place.nearbyFood.length;
+              final subtitle =
+                  optionsCount > 0
+                      ? '$optionsCount food options nearby'
+                      : 'Food spots within a short walk';
+
+              final isFav = widget.favorites.any((p) => p.id == place.id);
+              final isVisited = widget.visited.any((p) => p.id == place.id);
+
+              return GestureDetector(
+                onTap: () async {
+                  await Navigator.of(context).push(
+                    PageRouteBuilder(
+                      pageBuilder:
+                          (_, a1, __) => FadeTransition(
+                            opacity: a1,
+                            child: PlaceDetailsScreen(
+                              place: place,
+                              isFavorite: isFav,
+                              isVisited: isVisited,
+                              onToggleFavorite: widget.onToggleFavorite,
+                              onToggleVisited: widget.onToggleVisited,
+                            ),
+                          ),
+                      transitionDuration: const Duration(milliseconds: 220),
+                    ),
+                  );
+                  setState(() {});
+                },
+                child: Container(
+                  width: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFFFF1C2), // light McD yellow
+                        Color(0xFFFFC72C), // strong McD yellow
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          place.imageUrl,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                width: 60,
+                                height: 60,
+                                color: const Color(0xFFFFF3D6),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.chair_alt,
+                                    color: Color(0xFFDA291C),
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              place.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              subtitle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.local_dining,
+                                  size: 12,
+                                  color: Color(0xFFB91C1C),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  place.building,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFFB91C1C),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -322,7 +499,6 @@ class _StudyPlaceCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Thumbnail image instead of same icon everywhere
                 SizedBox(
                   width: 56,
                   height: 56,

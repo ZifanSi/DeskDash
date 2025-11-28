@@ -96,7 +96,7 @@ class PlaceDetailsScreen extends StatelessWidget {
     );
   }
 
-  /// Top banner image using a network URL
+  /// Top banner image using network URL
   Widget _buildBannerImage() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -249,7 +249,7 @@ class PlaceDetailsScreen extends StatelessWidget {
     );
   }
 
-  /// Horizontal list of nearby food spots with logo + distance
+  /// Horizontal "Food nearby" section on details screen
   Widget _buildFoodNearbySection(BuildContext context) {
     if (place.nearbyFood.isEmpty) {
       return const SizedBox.shrink();
@@ -266,7 +266,7 @@ class PlaceDetailsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         SizedBox(
-          height: 90,
+          height: 110, // <- increased so the card has enough vertical room
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: place.nearbyFood.length,
@@ -278,7 +278,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -288,6 +288,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                   ],
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
@@ -330,7 +331,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                               color: Color(0xFF6B7280),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Row(
                             children: [
                               const Icon(
