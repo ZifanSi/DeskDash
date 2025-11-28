@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/study_place.dart';
 import 'place_details_screen.dart';
 
-// NEW imports
+// NEW imports for food section
 import '../widgets/food_menu.dart';
 import '../data/mock_food_menu.dart';
 
@@ -48,9 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
           place.name.toLowerCase().contains(query) ||
           place.building.toLowerCase().contains(query);
 
-      final matchesFilters =
-          _activeFilters.isEmpty ||
-          _activeFilters.every((f) => place.tags.contains(f));
+    final matchesFilters =
+        _activeFilters.isEmpty ||
+        _activeFilters.every((f) => place.tags.contains(f));
 
       return matchesQuery && matchesFilters;
     }).toList();
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 10),
 
-            // McDonald's-style mock food menu
+            // McMaster mock food menu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: FoodMenu(items: mockFoodMenu),
@@ -101,61 +101,56 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
-                child:
-                    visibleList.isEmpty
-                        ? _buildEmptyState()
-                        : ListView.separated(
-                          key: ValueKey(_currentTab.toString() + _searchQuery),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          itemCount: visibleList.length,
-                          separatorBuilder:
-                              (_, __) => const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final place = visibleList[index];
-                            final isFav = widget.favorites.any(
-                              (p) => p.id == place.id,
-                            );
-                            final isVisited = widget.visited.any(
-                              (p) => p.id == place.id,
-                            );
+                child: visibleList.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.separated(
+                        key: ValueKey(_currentTab.toString() + _searchQuery),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        itemCount: visibleList.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final place = visibleList[index];
+                          final isFav =
+                              widget.favorites.any((p) => p.id == place.id);
+                          final isVisited =
+                              widget.visited.any((p) => p.id == place.id);
 
-                            return _StudyPlaceCard(
-                              place: place,
-                              isFavorite: isFav,
-                              isVisited: isVisited,
-                              onFavoriteTap: () {
-                                widget.onToggleFavorite(place);
-                                setState(() {});
-                              },
-                              onTap: () async {
-                                await Navigator.of(context).push(
-                                  PageRouteBuilder(
-                                    pageBuilder:
-                                        (_, a1, __) => FadeTransition(
-                                          opacity: a1,
-                                          child: PlaceDetailsScreen(
-                                            place: place,
-                                            isFavorite: isFav,
-                                            isVisited: isVisited,
-                                            onToggleFavorite:
-                                                widget.onToggleFavorite,
-                                            onToggleVisited:
-                                                widget.onToggleVisited,
-                                          ),
-                                        ),
-                                    transitionDuration: const Duration(
-                                      milliseconds: 220,
+                          return _StudyPlaceCard(
+                            place: place,
+                            isFavorite: isFav,
+                            isVisited: isVisited,
+                            onFavoriteTap: () {
+                              widget.onToggleFavorite(place);
+                              setState(() {});
+                            },
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                PageRouteBuilder(
+                                  pageBuilder: (_, a1, __) => FadeTransition(
+                                    opacity: a1,
+                                    child: PlaceDetailsScreen(
+                                      place: place,
+                                      isFavorite: isFav,
+                                      isVisited: isVisited,
+                                      onToggleFavorite:
+                                          widget.onToggleFavorite,
+                                      onToggleVisited:
+                                          widget.onToggleVisited,
                                     ),
                                   ),
-                                );
-                                setState(() {}); // refresh badges
-                              },
-                            );
-                          },
-                        ),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 220),
+                                ),
+                              );
+                              setState(() {}); // refresh badges
+                            },
+                          );
+                        },
+                      ),
               ),
             ),
           ],
@@ -187,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ---------- helpers ----------
+  // ---------- helpers for header / search / chips / empty ----------
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
@@ -253,26 +248,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children:
-            _availableFilters.map((label) {
-              final selected = _activeFilters.contains(label);
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(label),
-                  selected: selected,
-                  onSelected: (value) {
-                    setState(() {
-                      if (value) {
-                        _activeFilters.add(label);
-                      } else {
-                        _activeFilters.remove(label);
-                      }
-                    });
-                  },
-                ),
-              );
-            }).toList(),
+        children: _availableFilters.map((label) {
+          final selected = _activeFilters.contains(label);
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(label),
+              selected: selected,
+              onSelected: (value) {
+                setState(() {
+                  if (value) {
+                    _activeFilters.add(label);
+                  } else {
+                    _activeFilters.remove(label);
+                  }
+                });
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -308,6 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// ---------- Study place card with mini charts on main page ----------
+
 class _StudyPlaceCard extends StatelessWidget {
   final StudyPlace place;
   final bool isFavorite;
@@ -323,8 +319,57 @@ class _StudyPlaceCard extends StatelessWidget {
     required this.onTap,
   });
 
+  double _scoreFromLabel(String label, {bool invert = false}) {
+    final l = label.toLowerCase();
+    double v;
+
+    if (l.contains('silent') || l.contains('very quiet')) {
+      v = 0.1;
+    } else if (l.contains('quiet')) {
+      v = 0.3;
+    } else if (l.contains('moderate') || l.contains('medium')) {
+      v = 0.6;
+    } else if (l.contains('busy') || l.contains('loud') || l.contains('noisy')) {
+      v = 0.9;
+    } else {
+      v = 0.5;
+    }
+
+    if (invert) v = 1.0 - v;
+    if (v < 0) v = 0;
+    if (v > 1) v = 1;
+    return v;
+  }
+
+  Widget _miniBar(double value, Color color) {
+    return SizedBox(
+      width: 60,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(999),
+        child: LinearProgressIndicator(
+          value: value,
+          minHeight: 4,
+          backgroundColor: const Color(0xFFE5E7EB),
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // scores for mini charts
+    final noiseScore = _scoreFromLabel(place.noise, invert: true);
+    final crowdedScore = _scoreFromLabel(place.crowdedness, invert: true);
+    double foodScore;
+    if (place.nearFood) {
+      foodScore = 0.85;
+    } else if ((place.nearbyFood?.length ?? 0) > 0) {
+      foodScore = 0.65;
+    } else {
+      foodScore = 0.3;
+    }
+
     return Hero(
       tag: 'place-${place.id}',
       child: Card(
@@ -370,6 +415,7 @@ class _StudyPlaceCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // title + rating row
                       Row(
                         children: [
                           Expanded(
@@ -410,16 +456,15 @@ class _StudyPlaceCard extends StatelessWidget {
                       Wrap(
                         spacing: 6,
                         runSpacing: 2,
-                        children:
-                            place.tags.take(3).map((tag) {
-                              return Text(
-                                '#$tag',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF9CA3AF),
-                                ),
-                              );
-                            }).toList(),
+                        children: place.tags.take(3).map((tag) {
+                          return Text(
+                            '#$tag',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9CA3AF),
+                            ),
+                          );
+                        }).toList(),
                       ),
                       if (isVisited)
                         Padding(
@@ -442,6 +487,67 @@ class _StudyPlaceCard extends StatelessWidget {
                             ],
                           ),
                         ),
+
+                      const SizedBox(height: 8),
+
+                      // NEW: mini vibe charts row
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Noise',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              _miniBar(
+                                noiseScore,
+                                const Color(0xFF22C55E), // green
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Crowd',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              _miniBar(
+                                crowdedScore,
+                                const Color(0xFFFFC72C), // yellow
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Food',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              _miniBar(
+                                foodScore,
+                                const Color(0xFFDA291C), // red
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
