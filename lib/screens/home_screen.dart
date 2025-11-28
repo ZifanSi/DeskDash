@@ -322,22 +322,34 @@ class _StudyPlaceCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
+                // Thumbnail image instead of same icon everywhere
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFFFC72C), // yellow
-                        Color(0xFFDA291C), // red
-                      ],
+                    child: Image.network(
+                      place.imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: const Color(0xFFFFF3D6),
+                          child: const Center(
+                            child: Icon(
+                              Icons.chair_alt,
+                              color: Color(0xFFDA291C),
+                              size: 24,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.chair_alt, color: Colors.white, size: 26),
                   ),
                 ),
                 const SizedBox(width: 12),
