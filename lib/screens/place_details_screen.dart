@@ -47,9 +47,6 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
       _reviewController.clear();
       _selectedRating = 4;
     });
-
-    // For this assignment prototype, we keep reviews in local state.
-    // In a real app, you'd also update the model / backend here.
   }
 
   @override
@@ -92,7 +89,12 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                               )
                               .toList(),
                     ),
+                    const SizedBox(height: 16),
+
+                    // NEW: study vibe metrics with mini bar charts
+                    _buildStudyMetrics(context),
                     const SizedBox(height: 20),
+
                     _buildActions(context),
                     const SizedBox(height: 24),
                     _buildReviewsSection(context),
@@ -247,6 +249,148 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ---------- study vibe metrics (charts) ----------
+
+  double _scoreFromLabel(String label, {bool invert = false}) {
+    final l = label.toLowerCase();
+    double v;
+
+    if (l.contains('silent') || l.contains('very quiet')) {
+      v = 0.1;
+    } else if (l.contains('quiet')) {
+      v = 0.3;
+    } else if (l.contains('moderate') || l.contains('medium')) {
+      v = 0.6;
+    } else if (l.contains('busy') ||
+        l.contains('loud') ||
+        l.contains('noisy')) {
+      v = 0.9;
+    } else {
+      v = 0.5;
+    }
+
+    if (invert) v = 1.0 - v;
+    if (v < 0) v = 0;
+    if (v > 1) v = 1;
+    return v;
+  }
+
+  Widget _buildMetricRow({
+    required String title,
+    required String subtitle,
+    required double value,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 110,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: value,
+                minHeight: 6,
+                backgroundColor: const Color(0xFFE5E7EB),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudyMetrics(BuildContext context) {
+    // Noise: lower is better, so invert (quiet -> high score)
+    final noiseScore = _scoreFromLabel(widget.place.noise, invert: true);
+
+    // Crowdedness: lower is better, so invert (less crowded -> high score)
+    final crowdedScore = _scoreFromLabel(
+      widget.place.crowdedness,
+      invert: true,
+    );
+
+    // Proximity to food: simple heuristic based on nearFood / nearbyFood
+    double foodScore;
+    if (widget.place.nearFood) {
+      foodScore = 0.85;
+    } else if ((widget.place.nearbyFood?.length ?? 0) > 0) {
+      foodScore = 0.65;
+    } else {
+      foodScore = 0.3;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Study vibe at a glance',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildMetricRow(
+            title: 'Noise level',
+            subtitle: widget.place.noise,
+            value: noiseScore,
+            color: const Color(0xFF22C55E), // green = good quietness
+          ),
+          _buildMetricRow(
+            title: 'Crowdedness',
+            subtitle: widget.place.crowdedness,
+            value: crowdedScore,
+            color: const Color(0xFFFFC72C), // yellow
+          ),
+          _buildMetricRow(
+            title: 'Proximity to food',
+            subtitle:
+                widget.place.nearFood
+                    ? 'Food options within a short walk'
+                    : 'Further from main food spots',
+            value: foodScore,
+            color: const Color(0xFFDA291C), // McD red
+          ),
+        ],
       ),
     );
   }

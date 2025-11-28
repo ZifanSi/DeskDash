@@ -15,7 +15,7 @@ class FoodMenu extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'TOP FOOD PICKS THIS WEEK',
+          'Toop Food Picks this week',
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -44,13 +44,31 @@ class _FoodMenuCard extends StatelessWidget {
 
   Future<void> _openRestaurant() async {
     final uri = Uri.parse(item.restaurantUrl);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      // ignore failure in this mock app
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  List<Widget> _buildStars() {
+    final stars = <Widget>[];
+    final full = item.rating.floor();
+    final hasHalf = (item.rating - full) >= 0.5;
+
+    for (var i = 0; i < full; i++) {
+      stars.add(const Icon(Icons.star, size: 14, color: Colors.amber));
     }
+    if (hasHalf) {
+      stars.add(const Icon(Icons.star_half, size: 14, color: Colors.amber));
+    }
+    while (stars.length < 5) {
+      stars.add(const Icon(Icons.star_border, size: 14, color: Colors.amber));
+    }
+
+    return stars;
   }
 
   @override
   Widget build(BuildContext context) {
+    final quote = item.quotes.isNotEmpty ? item.quotes.first : null;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -91,13 +109,35 @@ class _FoodMenuCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
-                  ),
+                // name + stars + numeric rating
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    ..._buildStars(),
+                    const SizedBox(width: 4),
+                    Text(
+                      item.rating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -107,6 +147,17 @@ class _FoodMenuCard extends StatelessWidget {
                     color: Color(0xFF6B7280),
                   ),
                 ),
+                if (quote != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    quote,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                      color: Color(0xFF4B5563),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 InkWell(
                   onTap: _openRestaurant,
