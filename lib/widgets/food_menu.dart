@@ -36,7 +36,7 @@ class FoodMenu extends StatelessWidget {
               ),
               const Spacer(),
               const Text(
-                'Location API',
+                'Google Map API (Food Places)',
                 style: TextStyle(
                   fontSize: 10,
                   color: Color.fromARGB(255, 6, 76, 215),

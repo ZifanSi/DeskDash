@@ -3,6 +3,8 @@ import '../models/study_place.dart';
 import 'place_details_screen.dart';
 import '../widgets/food_menu.dart';
 import '../data/mock_food_menu.dart';
+import '../widgets/bus_widget.dart';
+import '../data/mock_bus_trips.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<StudyPlace> allPlaces;
@@ -72,7 +74,13 @@ class _HomeScreenState extends State<HomeScreen> {
         visibleList = allFiltered;
     }
 
-    const headerCount = 4; // header, search, chips, food section
+    // header rows:
+    // 0: header
+    // 1: search
+    // 2: filter chips
+    // 3: bus widget
+    // 4: food widget
+    const headerCount = 5;
     final hasPlaces = visibleList.isNotEmpty;
     final totalCount = headerCount + (hasPlaces ? visibleList.length : 1);
 
@@ -106,8 +114,16 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            // 3: compact vertical food section
+            // 3: bus widget (buses in next hour)
             if (index == 3) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: BusWidget(trips: mockBusTrips),
+              );
+            }
+
+            // 4: compact vertical food section
+            if (index == 4) {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
                 child: FoodMenu(items: mockFoodMenu),
@@ -229,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     TextSpan(
                       text: 'Grab a snack.',
                       style: TextStyle(
-                        color: Color(0xFFDA291C), // McD red for food
+                        color: Color(0xFFDA291C), // red for food
                       ),
                     ),
                   ],
