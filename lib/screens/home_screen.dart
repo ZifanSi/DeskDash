@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            // 3: fancy food section
+            // 3: compact vertical food section
             if (index == 3) {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
@@ -128,10 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             final placeIndex = index - headerCount;
             final place = visibleList[placeIndex];
-            final isFav =
-                widget.favorites.any((p) => p.id == place.id);
-            final isVisited =
-                widget.visited.any((p) => p.id == place.id);
+            final isFav = widget.favorites.any((p) => p.id == place.id);
+            final isVisited = widget.visited.any((p) => p.id == place.id);
 
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
@@ -141,24 +139,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 isVisited: isVisited,
                 onFavoriteTap: () {
                   widget.onToggleFavorite(place);
-                  // no setState here – parent list rebuilds on next frame anyway
                   (context as Element).markNeedsBuild();
                 },
                 onTap: () async {
                   await Navigator.of(context).push(
                     PageRouteBuilder(
-                      pageBuilder: (_, a1, __) => FadeTransition(
-                        opacity: a1,
-                        child: PlaceDetailsScreen(
-                          place: place,
-                          isFavorite: isFav,
-                          isVisited: isVisited,
-                          onToggleFavorite: widget.onToggleFavorite,
-                          onToggleVisited: widget.onToggleVisited,
-                        ),
-                      ),
-                      transitionDuration:
-                          const Duration(milliseconds: 220),
+                      pageBuilder:
+                          (_, a1, __) => FadeTransition(
+                            opacity: a1,
+                            child: PlaceDetailsScreen(
+                              place: place,
+                              isFavorite: isFav,
+                              isVisited: isVisited,
+                              onToggleFavorite: widget.onToggleFavorite,
+                              onToggleVisited: widget.onToggleVisited,
+                            ),
+                          ),
+                      transitionDuration: const Duration(milliseconds: 220),
                     ),
                   );
                   (context as Element).markNeedsBuild();
@@ -233,10 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         IconButton(
           onPressed: () {},
-          icon: const Icon(
-            Icons.notifications_none,
-            color: Color(0xFF111827),
-          ),
+          icon: const Icon(Icons.notifications_none, color: Color(0xFF111827)),
         ),
       ],
     );
@@ -257,25 +251,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _availableFilters.map((label) {
-          final selected = _activeFilters.contains(label);
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(label),
-              selected: selected,
-              onSelected: (value) {
-                setState(() {
-                  if (value) {
-                    _activeFilters.add(label);
-                  } else {
-                    _activeFilters.remove(label);
-                  }
-                });
-              },
-            ),
-          );
-        }).toList(),
+        children:
+            _availableFilters.map((label) {
+              final selected = _activeFilters.contains(label);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(label),
+                  selected: selected,
+                  onSelected: (value) {
+                    setState(() {
+                      if (value) {
+                        _activeFilters.add(label);
+                      } else {
+                        _activeFilters.remove(label);
+                      }
+                    });
+                  },
+                ),
+              );
+            }).toList(),
       ),
     );
   }
@@ -328,28 +323,6 @@ class _StudyPlaceCard extends StatelessWidget {
     required this.onTap,
   });
 
-  double _scoreFromLabel(String label, {bool invert = false}) {
-    final l = label.toLowerCase();
-    double v;
-
-    if (l.contains('silent') || l.contains('very quiet')) {
-      v = 0.1;
-    } else if (l.contains('quiet')) {
-      v = 0.3;
-    } else if (l.contains('moderate') || l.contains('medium')) {
-      v = 0.6;
-    } else if (l.contains('busy') || l.contains('loud') || l.contains('noisy')) {
-      v = 0.9;
-    } else {
-      v = 0.5;
-    }
-
-    if (invert) v = 1.0 - v;
-    if (v < 0) v = 0;
-    if (v > 1) v = 1;
-    return v;
-  }
-
   Widget _miniBar(double value, Color color) {
     return SizedBox(
       width: 60,
@@ -367,17 +340,19 @@ class _StudyPlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // scores for mini charts
-    final noiseScore = _scoreFromLabel(place.noise, invert: true);
-    final crowdedScore = _scoreFromLabel(place.crowdedness, invert: true);
-    double foodScore;
-    if (place.nearFood) {
-      foodScore = 0.85;
-    } else if ((place.nearbyFood?.length ?? 0) > 0) {
-      foodScore = 0.65;
-    } else {
-      foodScore = 0.3;
-    }
+    // Capacity-based fractions (with safe defaults)
+    final seatsTotal = place.seatsTotal <= 0 ? 1 : place.seatsTotal;
+    final foodTotal = place.foodOptionsTotal <= 0 ? 1 : place.foodOptionsTotal;
+
+    final seatsFreeFraction = (place.seatsAvailable / seatsTotal).clamp(
+      0.0,
+      1.0,
+    );
+    final foodOpenFraction = (place.foodOptionsOpen / foodTotal).clamp(
+      0.0,
+      1.0,
+    );
+    final quietFraction = (1.0 - place.noiseScore).clamp(0.0, 1.0);
 
     return Hero(
       tag: 'place-${place.id}',
@@ -465,15 +440,16 @@ class _StudyPlaceCard extends StatelessWidget {
                       Wrap(
                         spacing: 6,
                         runSpacing: 2,
-                        children: place.tags.take(3).map((tag) {
-                          return Text(
-                            '#$tag',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF9CA3AF),
-                            ),
-                          );
-                        }).toList(),
+                        children:
+                            place.tags.take(3).map((tag) {
+                              return Text(
+                                '#$tag',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF9CA3AF),
+                                ),
+                              );
+                            }).toList(),
                       ),
                       if (isVisited)
                         Padding(
@@ -513,7 +489,7 @@ class _StudyPlaceCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               _miniBar(
-                                noiseScore,
+                                quietFraction,
                                 const Color(0xFF22C55E), // green
                               ),
                             ],
@@ -523,7 +499,7 @@ class _StudyPlaceCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Crowd',
+                                'Seats free',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Color(0xFF6B7280),
@@ -531,7 +507,7 @@ class _StudyPlaceCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               _miniBar(
-                                crowdedScore,
+                                seatsFreeFraction,
                                 const Color(0xFFFFC72C), // yellow
                               ),
                             ],
@@ -549,7 +525,7 @@ class _StudyPlaceCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               _miniBar(
-                                foodScore,
+                                foodOpenFraction,
                                 const Color(0xFFDA291C), // red
                               ),
                             ],

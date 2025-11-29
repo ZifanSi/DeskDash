@@ -1,5 +1,4 @@
-import 'nearby_food_spot.dart';
-
+// lib/models/study_place.dart
 class StudyPlace {
   final String id;
   final String name;
@@ -7,15 +6,21 @@ class StudyPlace {
   final String description;
   final List<String> tags;
   final double rating;
-  final String noise;
-  final String crowdedness;
-  final bool hasOutlets;
-  final bool nearFood;
-  final List<String> reviews;
+  final String imageUrl;
 
-  // NEW: use URLs instead of asset paths
-  final String imageUrl; // banner image URL
-  final List<NearbyFoodSpot> nearbyFood; // food with logo URLs
+  // NEW: capacity-based fields
+  final int seatsTotal; // e.g. 320
+  final int seatsAvailable; // e.g. 100 (free seats)
+
+  // NEW: nearby food capacity
+  final int foodOptionsTotal; // e.g. 4 food spots around here
+  final int foodOptionsOpen; // e.g. 3 currently open
+
+  // You can still keep any older fields you had (noise, nearFood, reviews, etc.)
+  final double noiseScore; // 0.0 = very quiet, 1.0 = very loud (for bar)
+  final List<String> reviews;
+  final bool indoor;
+  final bool nearFood;
 
   const StudyPlace({
     required this.id,
@@ -24,12 +29,14 @@ class StudyPlace {
     required this.description,
     required this.tags,
     required this.rating,
-    required this.noise,
-    required this.crowdedness,
-    required this.hasOutlets,
-    required this.nearFood,
-    this.reviews = const [],
     required this.imageUrl,
-    this.nearbyFood = const [],
+    required this.seatsTotal,
+    required this.seatsAvailable,
+    required this.foodOptionsTotal,
+    required this.foodOptionsOpen,
+    required this.noiseScore,
+    required this.reviews,
+    required this.indoor,
+    required this.nearFood,
   });
 }
