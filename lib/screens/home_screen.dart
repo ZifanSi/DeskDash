@@ -74,13 +74,11 @@ class _HomeScreenState extends State<HomeScreen> {
         visibleList = allFiltered;
     }
 
-    // header rows:
     // 0: header
-    // 1: search
-    // 2: filter chips
-    // 3: bus widget
-    // 4: food widget
-    const headerCount = 5;
+    // 1: bus widget
+    // 2: food widget
+    // 3: search + expandable filters
+    const headerCount = 4;
     final hasPlaces = visibleList.isNotEmpty;
     final totalCount = headerCount + (hasPlaces ? visibleList.length : 1);
 
@@ -98,41 +96,32 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            // 1: search bar
+            // 1: buses
             if (index == 1) {
               return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                child: _buildSearchBar(),
-              );
-            }
-
-            // 2: filter chips
-            if (index == 2) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                child: _buildFilterChips(),
-              );
-            }
-
-            // 3: bus widget (buses in next hour)
-            if (index == 3) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                 child: BusWidget(trips: mockBusTrips),
               );
             }
 
-            // 4: compact vertical food section
-            if (index == 4) {
+            // 2: food
+            if (index == 2) {
               return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: FoodMenu(items: mockFoodMenu),
+              );
+            }
+
+            // 3: search + expandable filters
+            if (index == 3) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: _buildSearchAndFilters(context),
               );
             }
 
             // after headerCount: either empty state or study place cards
             if (!hasPlaces) {
-              // just one empty-state block
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -207,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ---------- helpers for header / search / chips / empty ----------
+  // ---------- helpers for header / search / filters / empty ----------
 
   Widget _buildHeader(BuildContext context) {
     return Row(
@@ -262,6 +251,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSearchAndFilters(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSearchBar(),
+        const SizedBox(height: 6),
+        _buildFilterSection(context),
+      ],
+    );
+  }
+
   Widget _buildSearchBar() {
     return TextField(
       onChanged: (value) => setState(() => _searchQuery = value),
@@ -269,6 +269,39 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: const InputDecoration(
         hintText: 'Search by name or building',
         prefixIcon: Icon(Icons.search, color: Color(0xFF9CA3AF)),
+      ),
+    );
+  }
+
+  Widget _buildFilterSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+          leading: const Icon(Icons.filter_list, size: 18),
+          title: const Text(
+            'Filter study spots',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF111827),
+            ),
+          ),
+          subtitle: const Text(
+            'Choose vibe, seating, and food',
+            style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+          ),
+          iconColor: const Color(0xFF6B7280),
+          collapsedIconColor: const Color(0xFF6B7280),
+          children: [const SizedBox(height: 6), _buildFilterChips()],
+        ),
       ),
     );
   }
