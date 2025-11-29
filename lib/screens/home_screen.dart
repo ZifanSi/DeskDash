@@ -202,16 +202,18 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(
-              colors: [
-                Color(0xFFFFC72C), // McD yellow
-                Color(0xFFDA291C), // McD red
-              ],
+              colors: [Color(0xFFFFC72C), Color(0xFFDA291C)],
             ),
           ),
-          child: const Center(
-            child: Icon(Icons.chair_alt, color: Colors.white, size: 22),
+          child: Padding(
+            padding: const EdgeInsets.all(4.0), // adjust padding if needed
+            child: Image.asset(
+              'assets/images/deskdash_logo.png',
+              fit: BoxFit.contain,
+            ),
           ),
         ),
+
         const SizedBox(width: 12),
         Expanded(
           child: Column(

@@ -225,7 +225,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Live comfort snapshot (mock)',
+            'Live comfort snapshot',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -559,7 +559,7 @@ class _ReviewCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Mock timestamp · from prototype',
+                  'timestamp · from prototype',
                   style: TextStyle(fontSize: 10, color: Color(0xFF9CA3AF)),
                 ),
               ],
