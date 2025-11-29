@@ -20,6 +20,11 @@ Place details – comfort snapshot + reviews:
 ---
 
 How to run:
+- (Recommand) Download APK for folder:
+    ```bash
+  apks\app-debug.apk
+
+or:
 - From the project root, install dependencies:
 
   ```bash
