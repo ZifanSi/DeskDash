@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/study_place.dart';
 import 'place_details_screen.dart';
-
-// NEW imports for food section
 import '../widgets/food_menu.dart';
 import '../data/mock_food_menu.dart';
 
@@ -48,9 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
           place.name.toLowerCase().contains(query) ||
           place.building.toLowerCase().contains(query);
 
-    final matchesFilters =
-        _activeFilters.isEmpty ||
-        _activeFilters.every((f) => place.tags.contains(f));
+      final matchesFilters =
+          _activeFilters.isEmpty ||
+          _activeFilters.every((f) => place.tags.contains(f));
 
       return matchesQuery && matchesFilters;
     }).toList();
@@ -74,86 +72,100 @@ class _HomeScreenState extends State<HomeScreen> {
         visibleList = allFiltered;
     }
 
+    const headerCount = 4; // header, search, chips, food section
+    final hasPlaces = visibleList.isNotEmpty;
+    final totalCount = headerCount + (hasPlaces ? visibleList.length : 1);
+
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildSearchBar(),
-            ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildFilterChips(),
-            ),
-            const SizedBox(height: 10),
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          itemCount: totalCount,
+          itemBuilder: (context, index) {
+            // 0: header
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: _buildHeader(context),
+              );
+            }
 
-            // McMaster mock food menu
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: FoodMenu(items: mockFoodMenu),
-            ),
-            const SizedBox(height: 10),
+            // 1: search bar
+            if (index == 1) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: _buildSearchBar(),
+              );
+            }
 
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: visibleList.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.separated(
-                        key: ValueKey(_currentTab.toString() + _searchQuery),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+            // 2: filter chips
+            if (index == 2) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: _buildFilterChips(),
+              );
+            }
+
+            // 3: fancy food section
+            if (index == 3) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                child: FoodMenu(items: mockFoodMenu),
+              );
+            }
+
+            // after headerCount: either empty state or study place cards
+            if (!hasPlaces) {
+              // just one empty-state block
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: _buildEmptyState(),
+              );
+            }
+
+            final placeIndex = index - headerCount;
+            final place = visibleList[placeIndex];
+            final isFav =
+                widget.favorites.any((p) => p.id == place.id);
+            final isVisited =
+                widget.visited.any((p) => p.id == place.id);
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              child: _StudyPlaceCard(
+                place: place,
+                isFavorite: isFav,
+                isVisited: isVisited,
+                onFavoriteTap: () {
+                  widget.onToggleFavorite(place);
+                  // no setState here – parent list rebuilds on next frame anyway
+                  (context as Element).markNeedsBuild();
+                },
+                onTap: () async {
+                  await Navigator.of(context).push(
+                    PageRouteBuilder(
+                      pageBuilder: (_, a1, __) => FadeTransition(
+                        opacity: a1,
+                        child: PlaceDetailsScreen(
+                          place: place,
+                          isFavorite: isFav,
+                          isVisited: isVisited,
+                          onToggleFavorite: widget.onToggleFavorite,
+                          onToggleVisited: widget.onToggleVisited,
                         ),
-                        itemCount: visibleList.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final place = visibleList[index];
-                          final isFav =
-                              widget.favorites.any((p) => p.id == place.id);
-                          final isVisited =
-                              widget.visited.any((p) => p.id == place.id);
-
-                          return _StudyPlaceCard(
-                            place: place,
-                            isFavorite: isFav,
-                            isVisited: isVisited,
-                            onFavoriteTap: () {
-                              widget.onToggleFavorite(place);
-                              setState(() {});
-                            },
-                            onTap: () async {
-                              await Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  pageBuilder: (_, a1, __) => FadeTransition(
-                                    opacity: a1,
-                                    child: PlaceDetailsScreen(
-                                      place: place,
-                                      isFavorite: isFav,
-                                      isVisited: isVisited,
-                                      onToggleFavorite:
-                                          widget.onToggleFavorite,
-                                      onToggleVisited:
-                                          widget.onToggleVisited,
-                                    ),
-                                  ),
-                                  transitionDuration:
-                                      const Duration(milliseconds: 220),
-                                ),
-                              );
-                              setState(() {}); // refresh badges
-                            },
-                          );
-                        },
                       ),
+                      transitionDuration:
+                          const Duration(milliseconds: 220),
+                    ),
+                  );
+                  (context as Element).markNeedsBuild();
+                },
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
       bottomNavigationBar: NavigationBar(
@@ -185,51 +197,48 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------- helpers for header / search / chips / empty ----------
 
   Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFFFFC72C), // McD yellow
-                  Color(0xFFDA291C), // McD red
-                ],
-              ),
-            ),
-            child: const Center(
-              child: Icon(Icons.chair_alt, color: Colors.white, size: 22),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('DeskDash', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 2),
-                Text(
-                  'Find your next go-to study spot on campus.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFFFFC72C), // McD yellow
+                Color(0xFFDA291C), // McD red
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none,
-              color: Color(0xFF111827),
-            ),
+          child: const Center(
+            child: Icon(Icons.chair_alt, color: Colors.white, size: 22),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('DeskDash', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 2),
+              Text(
+                'Find your next go-to study spot on campus.',
+                style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.notifications_none,
+            color: Color(0xFF111827),
+          ),
+        ),
+      ],
     );
   }
 
@@ -487,10 +496,9 @@ class _StudyPlaceCard extends StatelessWidget {
                             ],
                           ),
                         ),
-
                       const SizedBox(height: 8),
 
-                      // NEW: mini vibe charts row
+                      // mini vibe charts row
                       Row(
                         children: [
                           Column(

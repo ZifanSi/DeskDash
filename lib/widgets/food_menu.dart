@@ -11,28 +11,56 @@ class FoodMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Toop Food Picks this week',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Column(
-          children:
-              items
-                  .map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _FoodMenuCard(item: item),
-                    ),
-                  )
-                  .toList(),
-        ),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBF0),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFFE4A3)),
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // header row – small & subtle
+          Row(
+            children: [
+              const Icon(Icons.fastfood, size: 16, color: Color(0xFFB91C1C)),
+              const SizedBox(width: 6),
+              const Text(
+                'Food nearby',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const Spacer(),
+              const Text(
+                'Location API',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Color.fromARGB(255, 6, 76, 215),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          // compact vertical list in its own scroll box
+          SizedBox(
+            height: 150, // controls how tall the food section feels
+            child: ListView.separated(
+              scrollDirection: Axis.vertical,
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
+              itemBuilder: (context, index) {
+                return _FoodMenuCard(item: items[index]);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -53,13 +81,13 @@ class _FoodMenuCard extends StatelessWidget {
     final hasHalf = (item.rating - full) >= 0.5;
 
     for (var i = 0; i < full; i++) {
-      stars.add(const Icon(Icons.star, size: 14, color: Colors.amber));
+      stars.add(const Icon(Icons.star, size: 11, color: Colors.amber));
     }
     if (hasHalf) {
-      stars.add(const Icon(Icons.star_half, size: 14, color: Colors.amber));
+      stars.add(const Icon(Icons.star_half, size: 11, color: Colors.amber));
     }
     while (stars.length < 5) {
-      stars.add(const Icon(Icons.star_border, size: 14, color: Colors.amber));
+      stars.add(const Icon(Icons.star_border, size: 11, color: Colors.amber));
     }
 
     return stars;
@@ -69,131 +97,113 @@ class _FoodMenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final quote = item.quotes.isNotEmpty ? item.quotes.first : null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              item.imageUrl,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (context, error, stack) => Container(
-                    width: 50,
-                    height: 50,
-                    color: const Color(0xFFFFF1C2),
-                    child: const Icon(
-                      Icons.fastfood,
-                      color: Color(0xFFDA291C),
-                      size: 24,
-                    ),
-                  ),
+    return InkWell(
+      onTap: _openRestaurant,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        // full width inside the FoodMenu container
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // name + stars + numeric rating
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.name,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
-                        ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          children: [
+            // small image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                item.imageUrl,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (context, error, stack) => Container(
+                      width: 40,
+                      height: 40,
+                      color: const Color(0xFFFFF1C2),
+                      child: const Icon(
+                        Icons.fastfood,
+                        color: Color(0xFFDA291C),
+                        size: 20,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    ..._buildStars(),
-                    const SizedBox(width: 4),
-                    Text(
-                      item.rating.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF6B7280),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.description,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-                if (quote != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    quote,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                      color: Color(0xFF4B5563),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 4),
-                InkWell(
-                  onTap: _openRestaurant,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // name + price
+                  Row(
                     children: [
-                      const Icon(
-                        Icons.link,
-                        size: 14,
-                        color: Color(0xFFB91C1C),
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        item.restaurantName,
+                        item.price,
                         style: const TextStyle(
                           fontSize: 11,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFFB91C1C),
-                          decoration: TextDecoration.underline,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+
+                  // stars + rating
+                  Row(
+                    children: [
+                      ..._buildStars(),
+                      const SizedBox(width: 3),
+                      Text(
+                        item.rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // one-line quote or restaurant name
+                  const SizedBox(height: 2),
+                  Text(
+                    quote ?? item.restaurantName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF6B7280),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            item.price,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFB91C1C),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
