@@ -334,7 +334,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
         const SizedBox(height: 8),
         if (_reviews.isEmpty)
           Text(
-            'No reviews yet. In a real app, students would leave comments here.',
+            'No reviews yet. In this prototype, students can add their own comments about the vibe of this study spot.',
             style: Theme.of(context).textTheme.bodySmall,
           )
         else
@@ -342,21 +342,9 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
             children:
                 _reviews
                     .map(
-                      (r) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFFFFF3D6),
-                          child: Icon(
-                            Icons.person_outline,
-                            size: 18,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                        title: Text(
-                          r,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                      (r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _ReviewCard(text: r),
                       ),
                     )
                     .toList(),
@@ -483,6 +471,102 @@ class _CapacityBarRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ---------------- REVIEW CARD WIDGET ----------------
+
+class _ReviewCard extends StatelessWidget {
+  final String text;
+
+  const _ReviewCard({required this.text});
+
+  List<Widget> _buildStaticStars() {
+    // simple 4.5-star look – visual only
+    return const [
+      Icon(Icons.star, size: 12, color: Colors.amber),
+      Icon(Icons.star, size: 12, color: Colors.amber),
+      Icon(Icons.star, size: 12, color: Colors.amber),
+      Icon(Icons.star, size: 12, color: Colors.amber),
+      Icon(Icons.star_half, size: 12, color: Colors.amber),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBF0),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFFE4A3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // gradient avatar
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFFFFC72C), Color(0xFFDA291C)],
+              ),
+            ),
+            child: const Icon(
+              Icons.person_outline,
+              size: 18,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // text + stars
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Row(children: _buildStaticStars()),
+                    const Spacer(),
+                    const Text(
+                      'Student review',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF6B7280),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Mock timestamp · from prototype',
+                  style: TextStyle(fontSize: 10, color: Color(0xFF9CA3AF)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
