@@ -196,36 +196,44 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [Color(0xFFFFC72C), Color(0xFFDA291C)],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(4.0), // adjust padding if needed
+        SizedBox(
+          width: 56,
+          height: 56,
+          child: ClipOval(
             child: Image.asset(
               'assets/images/deskdash_logo.png',
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
             ),
           ),
         ),
-
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('DeskDash', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 2),
-              Text(
-                'Find your next go-to study spot on campus.',
-                style: Theme.of(context).textTheme.bodySmall,
+              RichText(
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                  children: const [
+                    TextSpan(
+                      text: 'Grab a seat. ',
+                      style: TextStyle(
+                        color: Color(0xFF16A34A), // green for study
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Grab a snack.',
+                      style: TextStyle(
+                        color: Color(0xFFDA291C), // McD red for food
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
