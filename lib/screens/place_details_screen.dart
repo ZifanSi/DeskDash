@@ -1,8 +1,7 @@
-// lib/screens/place_details_screen.dart
 import 'package:flutter/material.dart';
 import '../models/study_place.dart';
 
-class PlaceDetailsScreen extends StatelessWidget {
+class PlaceDetailsScreen extends StatefulWidget {
   final StudyPlace place;
   final bool isFavorite;
   final bool isVisited;
@@ -17,6 +16,19 @@ class PlaceDetailsScreen extends StatelessWidget {
     required this.onToggleFavorite,
     required this.onToggleVisited,
   });
+
+  @override
+  State<PlaceDetailsScreen> createState() => _PlaceDetailsScreenState();
+}
+
+class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
+  late List<String> _reviews;
+
+  @override
+  void initState() {
+    super.initState();
+    _reviews = List<String>.from(widget.place.reviews);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +49,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                     _buildHeroCard(context),
                     const SizedBox(height: 16),
                     Text(
-                      place.description,
+                      widget.place.description,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 12),
@@ -45,7 +57,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 4,
                       children:
-                          place.tags
+                          widget.place.tags
                               .map(
                                 (t) => Chip(
                                   label: Text(t),
@@ -101,7 +113,7 @@ class PlaceDetailsScreen extends StatelessWidget {
 
   Widget _buildHeroCard(BuildContext context) {
     return Hero(
-      tag: 'place-${place.id}',
+      tag: 'place-${widget.place.id}',
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -121,7 +133,7 @@ class PlaceDetailsScreen extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
               child: Image.network(
-                place.imageUrl,
+                widget.place.imageUrl,
                 width: 72,
                 height: 72,
                 fit: BoxFit.cover,
@@ -146,7 +158,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    place.name,
+                    widget.place.name,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -155,7 +167,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    place.building,
+                    widget.place.building,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFFE2E8F0),
@@ -167,7 +179,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                       Icon(Icons.star, color: Colors.amber.shade400, size: 20),
                       const SizedBox(width: 4),
                       Text(
-                        place.rating.toStringAsFixed(1),
+                        widget.place.rating.toStringAsFixed(1),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -187,19 +199,20 @@ class PlaceDetailsScreen extends StatelessWidget {
   // ---------------- CAPACITY / GRAPH SECTION ----------------
 
   Widget _buildCapacitySection(BuildContext context) {
-    // avoid divide-by-zero
-    final seatsTotal = place.seatsTotal <= 0 ? 1 : place.seatsTotal;
-    final foodTotal = place.foodOptionsTotal <= 0 ? 1 : place.foodOptionsTotal;
+    final seatsTotal =
+        widget.place.seatsTotal <= 0 ? 1 : widget.place.seatsTotal;
+    final foodTotal =
+        widget.place.foodOptionsTotal <= 0 ? 1 : widget.place.foodOptionsTotal;
 
-    final seatsFreeFraction = (place.seatsAvailable / seatsTotal).clamp(
+    final seatsFreeFraction = (widget.place.seatsAvailable / seatsTotal).clamp(
       0.0,
       1.0,
     );
-    final foodOpenFraction = (place.foodOptionsOpen / foodTotal).clamp(
+    final foodOpenFraction = (widget.place.foodOptionsOpen / foodTotal).clamp(
       0.0,
       1.0,
     );
-    final quietFraction = (1.0 - place.noiseScore).clamp(0.0, 1.0);
+    final quietFraction = (1.0 - widget.place.noiseScore).clamp(0.0, 1.0);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -221,28 +234,27 @@ class PlaceDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Seats row
           _CapacityBarRow(
             label: 'Seats free',
-            valueLabel: '${place.seatsAvailable} / ${place.seatsTotal}',
+            valueLabel:
+                '${widget.place.seatsAvailable} / ${widget.place.seatsTotal}',
             fraction: seatsFreeFraction,
             barColor: const Color(0xFF22C55E), // green
           ),
           const SizedBox(height: 8),
 
-          // Food row
           _CapacityBarRow(
             label: 'Food spots open',
-            valueLabel: '${place.foodOptionsOpen} / ${place.foodOptionsTotal}',
+            valueLabel:
+                '${widget.place.foodOptionsOpen} / ${widget.place.foodOptionsTotal}',
             fraction: foodOpenFraction,
             barColor: const Color(0xFFFFC72C), // yellow
           ),
           const SizedBox(height: 8),
 
-          // Quietness row
           _CapacityBarRow(
             label: 'Quietness',
-            valueLabel: '${((quietFraction) * 100).round()}% quiet',
+            valueLabel: '${(quietFraction * 100).round()}% quiet',
             fraction: quietFraction,
             barColor: const Color(0xFF3B82F6), // blue
           ),
@@ -260,12 +272,15 @@ class PlaceDetailsScreen extends StatelessWidget {
   // ---------------- ACTION BUTTONS ----------------
 
   Widget _buildActions(BuildContext context) {
+    final isFavorite = widget.isFavorite;
+    final isVisited = widget.isVisited;
+
     return Row(
       children: [
         Expanded(
           child: FilledButton.icon(
             onPressed: () {
-              onToggleFavorite(place);
+              widget.onToggleFavorite(widget.place);
               Navigator.of(context).maybePop();
             },
             icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
@@ -278,7 +293,7 @@ class PlaceDetailsScreen extends StatelessWidget {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () {
-              onToggleVisited(place);
+              widget.onToggleVisited(widget.place);
               Navigator.of(context).maybePop();
             },
             icon: Icon(
@@ -291,20 +306,33 @@ class PlaceDetailsScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- REVIEWS ----------------
+  // ---------------- REVIEWS + WRITE REVIEW ----------------
 
   Widget _buildReviewsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Reviews',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        Row(
+          children: [
+            Text(
+              'Reviews',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => _openAddReviewSheet(context),
+              icon: const Icon(Icons.rate_review, size: 16),
+              label: const Text(
+                'Write a review',
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        if (place.reviews.isEmpty)
+        if (_reviews.isEmpty)
           Text(
             'No reviews yet. In a real app, students would leave comments here.',
             style: Theme.of(context).textTheme.bodySmall,
@@ -312,7 +340,7 @@ class PlaceDetailsScreen extends StatelessWidget {
         else
           Column(
             children:
-                place.reviews
+                _reviews
                     .map(
                       (r) => ListTile(
                         contentPadding: EdgeInsets.zero,
@@ -334,6 +362,73 @@ class PlaceDetailsScreen extends StatelessWidget {
                     .toList(),
           ),
       ],
+    );
+  }
+
+  void _openAddReviewSheet(BuildContext context) {
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Write a review',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'How was this study place?',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {
+                      final text = controller.text.trim();
+                      if (text.isEmpty) return;
+                      setState(() {
+                        _reviews.insert(0, text);
+                      });
+                      Navigator.of(sheetContext).pop();
+                    },
+                    child: const Text('Post'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
